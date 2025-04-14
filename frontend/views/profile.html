@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Profile - NOVUSPHERE</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f9f9f9;
+      padding: 0;
+      margin: 0;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #0b1120;
+      color: white;
+      padding: 15px 30px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    header h1 {
+      font-size: 1.8em;
+      color: #61dafb;
+    }
+    nav {
+      display: flex;
+      gap: 30px;
+    }
+    nav a {
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.3s ease;
+    }
+    nav a:hover {
+      color: #61dafb;
+    }
+    main {
+      padding: 20px 30px;
+    }
+    .profile-container {
+      display: flex;
+      gap: 40px;
+      justify-content: space-between;
+      margin-top: 30px;
+    }
+    .profile-left, .profile-right {
+      flex: 1;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    .profile-left img {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+    }
+    .profile-right {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .profile-right h2 {
+      margin-bottom: 15px;
+      color: #0b1120;
+    }
+    .profile-right p {
+      font-size: 1.1em;
+      color: #666;
+      line-height: 1.6;
+    }
+    .certificates {
+      margin-top: 40px;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    .certificates h3 {
+      color: #0b1120;
+      margin-bottom: 20px;
+    }
+    .certificates ul {
+      list-style-type: none;
+    }
+    .certificates ul li {
+      margin-bottom: 15px;
+      font-size: 1.1em;
+      color: #444;
+    }
+
+    /* Hackathon Cards */
+    .hackathons-section {
+      margin-top: 40px;
+    }
+    .hackathon-card {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+    .hackathon-card h3 {
+      color: #0b1120;
+    }
+    .hackathon-card p {
+      color: #666;
+      font-size: 1.1em;
+    }
+    .status {
+      font-weight: bold;
+    }
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 15px;
+    }
+    .status-label {
+      padding: 5px 10px;
+      background-color: #f1f1f1;
+      border-radius: 20px;
+      font-size: 1em;
+      color: #666;
+    }
+    .button {
+      background-color: #61dafb;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .button:hover {
+      background-color: #4fa3d1;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <h1>NOVUSPHERE</h1>
+    <nav>
+      <a href="home.html">Home</a>
+      <a href="#about">About Us</a>
+      <a href="profile.html">Profile</a>
+      <a href="#certificates">Certificates</a>
+    </nav>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <div class="profile-container">
+      <!-- Left Side: Profile Picture and Details -->
+      
+      <!-- Right Side: Profile Information -->
+      <div class="profile-right">
+        <h2>Heyy! This is OG!</h2>
+        <p>
+          I'm a B.Tech student specializing in Information Technology. I'm passionate about AI, entrepreneurship, and tech innovations. In my free time, I enjoy reading, exploring new tech ideas, and participating in hackathons.
+        </p>
+        <p>
+          Currently, I am leading the AI Club at my college, and I'm also focused on developing AI-based solutions for real-world problems. I have a strong interest in machine learning, app development, and tech entrepreneurship.
+        </p>
+      </div>
+    </div>
+
+    <!-- Hackathon Cards Section -->
+    <div class="hackathons-section">
+      <h2>Hackathons</h2>
+
+      <!-- Hackathon Card 1 -->
+      <div class="hackathon-card green">
+        <h3>NIT AI Hackathon</h3>
+        <p><strong>Status:</strong> <span class="status">Won</span></p>
+        <p><strong>Team Size:</strong> 4</p>
+        <p>Showcase your AI skills with NIT's annual AI hackathon.</p>
+
+        <!-- Add Certificate Button -->
+        <button class="button">Add Certificate</button>
+
+        <!-- Card Footer -->
+        <div class="card-footer">
+          <span class="status-label">Won</span>
+          <div>
+            <button class="button">Won</button>
+            <button class="button">Participated</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hackathon Card 2 -->
+      <div class="hackathon-card blue">
+        <h3>Global Tech Challenge</h3>
+        <p><strong>Status:</strong> <span class="status">Ongoing</span></p>
+        <p><strong>Team Size:</strong> 1</p>
+        <p>Compete for global internships by solving real-world problems.</p>
+
+        <!-- Add Certificate Button -->
+        <button class="button">Add Certificate</button>
+
+        <!-- Card Footer -->
+        <div class="card-footer">
+          <span class="status-label">Ongoing</span>
+          <div>
+            <button class="button">Won</button>
+            <button class="button">Participated</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hackathon Card 3 -->
+      <div class="hackathon-card grey">
+        <h3>Tech Innovators Hackathon</h3>
+        <p><strong>Status:</strong> <span class="status">Upcoming</span></p>
+        <p><strong>Team Size:</strong> 5</p>
+        <p>Join a global community of tech enthusiasts to innovate and compete.</p>
+
+        <!-- Add Certificate Button -->
+        <button class="button">Add Certificate</button>
+
+        <!-- Card Footer -->
+        <div class="card-footer">
+          <span class="status-label">Upcoming</span>
+          <div>
+            <button class="button">Won</button>
+            <button class="button">Participated</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+</body>
+</html>
