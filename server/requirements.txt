@@ -3,3 +3,5 @@ sequelize
 mysql2
 body-parser
 cors
+mongoose
+jwt-simple axios
