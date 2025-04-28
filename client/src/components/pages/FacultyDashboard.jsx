@@ -1,11 +1,24 @@
-// client/components/pages/FacultyDashboard.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import axios from 'axios';
 
 const FacultyDashboard = () => {
   const [postedEvents, setPostedEvents] = useState([]);
 
-  const handlePostEvent = (e) => {
+  useEffect(() => {
+    fetchPostedEvents();
+  }, []);
+
+  const fetchPostedEvents = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/getjobs');
+      setPostedEvents(response.data);
+    } catch (error) {
+      console.error('Error fetching posted events', error);
+    }
+  };
+
+  const handlePostEvent = async (e) => {
     e.preventDefault();
     const title = e.target.title.value;
     const type = e.target.type.value;
@@ -13,13 +26,15 @@ const FacultyDashboard = () => {
     const deadline = e.target.deadline.value;
 
     const newEvent = { title, type, description, deadline };
-    setPostedEvents([...postedEvents, newEvent]);
-    e.target.reset();
-  };
 
-  const handleDeleteEvent = (index) => {
-    const updated = postedEvents.filter((_, idx) => idx !== index);
-    setPostedEvents(updated);
+    try {
+      await axios.post('http://localhost:5000/postjob', newEvent);
+      fetchPostedEvents(); // refresh events after posting
+    } catch (error) {
+      console.error('Error posting new event', error);
+    }
+
+    e.target.reset();
   };
 
   return (
@@ -47,12 +62,6 @@ const FacultyDashboard = () => {
             whileHover={{ scale: 1.05 }}
             className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-md relative"
           >
-            <button
-              onClick={() => handleDeleteEvent(index)}
-              className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-            >
-              ✖
-            </button>
             <h3 className="text-xl font-bold mb-2">{event.title}</h3>
             <p className="mb-1">{event.description}</p>
             <p className="text-sm text-gray-600">{event.type} — Deadline: {event.deadline}</p>
