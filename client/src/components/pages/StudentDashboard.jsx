@@ -1,56 +1,148 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import Modal from 'react-modal';
+import './StudentDashboard.css'; // Link to external styles
 
-function StudentDashboard() {
-  const [jobs, setJobs] = useState([]);
-  const [error, setError] = useState(null);
+Modal.setAppElement('#root');
+
+const StudentDashboard = () => {
+  const [opportunities, setOpportunities] = useState([]);
+  const [selectedFilter, setSelectedFilter] = useState('Hackathons');
+  const [selectedOpportunity, setSelectedOpportunity] = useState(null);
+  const [error, setError] = useState('');
+
+  const typeMap = {
+    Hackathons: 'hackathon',
+    Jobs: 'job',
+    Internships: 'internship',
+    Events: 'event',
+  };
 
   useEffect(() => {
-    // Fetch jobs when the component mounts
-    const fetchJobs = async () => {
+    const fetchOpportunities = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/getjobs');  // Ensure the correct URL
-        setJobs(response.data);  // Set the fetched jobs into state
-      } catch (error) {
-        console.error('Error fetching opportunities:', error);
-        setError('Failed to fetch jobs. Please try again later.');
+        const response = await axios.get('http://localhost:5000/getjobs');
+        setOpportunities(response.data);
+      } catch (err) {
+        console.error('Error fetching data:', err);
+        setError('Failed to fetch opportunities.');
       }
     };
-    fetchJobs();
-  }, []);  // Empty dependency array ensures this runs once when the component mounts
+    fetchOpportunities();
+  }, []);
+
+  const filteredOpportunities = opportunities.filter(
+    (item) => item.type?.toLowerCase() === typeMap[selectedFilter]
+  );
+
+  const getUpcomingDeadlines = () => {
+    const now = new Date();
+    return opportunities
+      .filter((item) => new Date(item.deadline) > now)
+      .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
+      .slice(0, 3);
+  };
+
+  const upcoming = getUpcomingDeadlines();
+  const earliest = upcoming[0]?.id;
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6 font-sans">
-      <header className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">Welcome, Student 👋</h1>
-        <p className="text-gray-600 mt-1">Here’s your dashboard overview</p>
-      </header>
+    <div className="dashboard-container">
+      <div className="dashboard-main">
+        <div className="dashboard-header">
+          <h1>Welcome, John 👋</h1>
+          <p className="dashboard-date">April 24, 2024</p>
+        </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-          <section>
-            <h2 className="text-2xl font-semibold text-gray-700 mb-4">Opportunities</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {error ? (
-                <div className="p-4 bg-red-100 text-red-700 rounded-lg">
-                  {error}
-                </div>
-              ) : (
-                jobs.map((job, index) => (
-                  <div key={index} className="p-4 bg-white rounded-lg shadow-md">
-                    <h3 className="text-xl font-semibold">{job.title}</h3>
-                    <p className="text-gray-700 mt-2">{job.description}</p>
-                    <p className="text-gray-600 text-sm mt-2">Type: {job.type}</p>
-                    <p className="text-gray-600 text-sm">Deadline: {job.deadline}</p>
-                  </div>
-                ))
-              )}
-            </div>
-          </section>
+        <div className="dashboard-tabs">
+          {Object.keys(typeMap).map((key) => (
+            <span
+              key={key}
+              className={`tab ${selectedFilter === key ? 'active' : ''}`}
+              onClick={() => setSelectedFilter(key)}
+            >
+              {key}
+            </span>
+          ))}
+        </div>
+
+        <div className="opportunity-grid">
+          {filteredOpportunities.length === 0 ? (
+            <p className="empty-text">Oops! Nothing available right now.</p>
+          ) : (
+            filteredOpportunities.map((item) => (
+              <div
+                key={item.id}
+                className="opportunity-card"
+                onClick={() => setSelectedOpportunity(item)}
+              >
+                <h3>{item.title}</h3>
+                <p className="type">{item.type}</p>
+                <p>{item.description}</p>
+                <p className="deadline">
+                  Deadline: {Math.ceil((new Date(item.deadline) - new Date()) / (1000 * 60 * 60 * 24))} days
+                </p>
+                <button>Apply Now</button>
+              </div>
+            ))
+          )}
         </div>
       </div>
+
+      <div className="dashboard-sidebar">
+        <div className="chatbot-box">
+          <h3>AI Chatbot</h3>
+          <button>Ask a Question</button>
+        </div>
+
+        <div className="deadlines-box">
+          <h3>Upcoming Deadlines</h3>
+          {upcoming.map((item) => (
+            <div
+              key={item.id}
+              className="deadline-item"
+              onClick={() => setSelectedOpportunity(item)}
+            >
+              <p className={item.id === earliest ? 'highlight' : ''}>{item.title}</p>
+              <p>{new Date(item.deadline).toDateString()}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="application-tracker">
+          <h3>Application Tracker</h3>
+          <div className="tracker-stats">
+            <span>4 Applied</span>
+            <span>2 In Review</span>
+            <span>1 Shortlisted</span>
+            <span>1 Rejected</span>
+          </div>
+        </div>
+
+        <div className="discussion-forum">
+          <h3>Discussion Forum</h3>
+          <p>Join ongoing discussions with peers!</p>
+        </div>
+      </div>
+
+      <Modal
+        isOpen={!!selectedOpportunity}
+        onRequestClose={() => setSelectedOpportunity(null)}
+        className="modal"
+        overlayClassName="modal-overlay"
+      >
+        {selectedOpportunity && (
+          <div className="modal-content">
+            <h2>{selectedOpportunity.title}</h2>
+            <p className="type">{selectedOpportunity.type}</p>
+            <p>{selectedOpportunity.description}</p>
+            <p>Deadline: {new Date(selectedOpportunity.deadline).toDateString()}</p>
+            <button onClick={() => setSelectedOpportunity(null)}>Close</button>
+          </div>
+        )}
+      </Modal>
     </div>
   );
-}
+};
 
 export default StudentDashboard;
