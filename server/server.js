@@ -24,7 +24,7 @@ app.use((req, res, next) => {
 });
 
 // ✅ Connect to MongoDB
-<<<<<<< HEAD
+
 mongoose.connect('mongodb+srv://koppolsahithi:KZfoTd1MeDaMJQ25@cluster0.fhtmrse.mongodb.net/mernappdb?retryWrites=true&w=majority', { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('✅ MongoDB connected'))
   .catch((err) => console.log('MongoDB connection error:', err));
