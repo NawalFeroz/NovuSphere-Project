@@ -11,12 +11,12 @@ function LandingPage() {
   return (
     <div style={{ fontFamily: 'sans-serif' }}>
       <header style={{ height: '90vh', background: '#0f172a', color: 'white', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-        <h1 style={{ fontSize: '4rem', margin: '0' }}>Welcome to Novusphere</h1>
-        <p style={{ fontSize: '1.5rem', marginTop: '20px' }}>A new world of innovation and collaboration</p>
+        <h1 style={{ fontSize: '4rem', margin: '0' }}>Novusphere</h1>
+        <p style={{ fontSize: '1.5rem', marginTop: '20px' }}>Gateway to Emerging tech oppurtunities</p>
         <button
           onClick={handleGetStarted} // On click, call the handleGetStarted function
           style={{ marginTop: '30px', padding: '10px 20px', fontSize: '1rem', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>
-          Get Started
+          SignIn
         </button>
       </header>
 
