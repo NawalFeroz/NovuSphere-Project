@@ -1,21 +1,175 @@
-.input {
-    background: #f0f0f0;
-    padding: 10px;
-    border-radius: 8px;
-    width: 100%;
-    margin-bottom: 10px;
-  }
-  
-  .btn {
-    background: #2563eb;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-weight: bold;
-    transition: 0.3s;
-  }
-  
-  .btn:hover {
-    background: #1d4ed8;
-  }
-  
+.dashboard-container {
+  display: flex;
+  flex-direction: row;
+  padding: 2rem;
+  background: #f8fafc;
+  min-height: 100vh;
+  gap: 2rem;
+}
+
+.dashboard-main {
+  flex: 3;
+}
+
+.dashboard-header h1 {
+  font-size: 1.75rem;
+  font-weight: bold;
+}
+
+.dashboard-date {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-bottom: 1.5rem;
+}
+
+.dashboard-tabs {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.tab {
+  cursor: pointer;
+  padding-bottom: 4px;
+  color: #6b7280;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s ease-in-out;
+}
+
+.tab:hover {
+  color: #2563eb;
+}
+
+.tab.active {
+  color: #1d4ed8;
+  font-weight: 600;
+  border-bottom: 2px solid #2563eb;
+}
+
+.opportunity-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.opportunity-card {
+  background: white;
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+.opportunity-card:hover {
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.opportunity-card h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.opportunity-card .type {
+  font-size: 0.85rem;
+  color: #3b82f6;
+}
+
+.opportunity-card .deadline {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.opportunity-card button {
+  margin-top: 0.75rem;
+  padding: 0.4rem 1rem;
+  background: #3b82f6;
+  color: white;
+  border-radius: 0.375rem;
+  transition: background 0.2s;
+}
+
+.opportunity-card button:hover {
+  background: #2563eb;
+}
+
+/* Sidebar */
+.dashboard-sidebar {
+  flex: 1.3;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-top: 1.2rem;
+}
+
+.chatbot-box,
+.deadlines-box,
+.application-tracker,
+.discussion-forum {
+  background: white;
+  padding: 1.25rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05);
+}
+
+.chatbot-box button {
+  margin-top: 0.75rem;
+  background: #2563eb;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  transition: background 0.2s;
+}
+
+.chatbot-box button:hover {
+  background: #1d4ed8;
+}
+
+.deadline-item {
+  cursor: pointer;
+  margin-bottom: 0.75rem;
+}
+
+.deadline-item p {
+  font-size: 0.85rem;
+  color: #374151;
+}
+
+.deadline-item .highlight {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.application-tracker .tracker-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  font-size: 0.85rem;
+  color: #4b5563;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.modal {
+  max-width: 500px;
+  margin: auto;
+  background: white;
+  border-radius: 0.5rem;
+  padding: 2rem;
+  position: relative;
+  top: 20vh;
+}
+
+.modal-overlay {
+  background: rgba(0, 0, 0, 0.4);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.modal-content h2 {
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+}
