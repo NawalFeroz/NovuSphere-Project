@@ -5,3 +5,4 @@ framer-motion
 tailwindcss@3
 autoprefixer
 postcss
+react-modal
