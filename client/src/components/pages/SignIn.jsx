@@ -5,30 +5,43 @@ import { useNavigate } from 'react-router-dom';
 function SignIn() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('student'); // default role
+  const [role, setRole] = useState('student');
   const [error, setError] = useState(null);
-  const [darkMode, setDarkMode] = useState(false); // Theme state
+  const [darkMode, setDarkMode] = useState(false);
   const navigate = useNavigate();
 
-  // Email validation function
-  const isEmailValid = (email) => email.endsWith('@gmail.com');
+  const isEmailValid = (email, role) => {
+    if (role === 'student') {
+      const studentRegex = /^22wh1a12(\d{2})@[\w.-]+$/i;
+      const match = email.match(studentRegex);
+      const number = match ? parseInt(match[1]) : null;
+      return match && number >= 1 && number <= 65;
+    } else if (role === 'faculty') {
+      const facultyRegex = /^[a-zA-Z]+@[\w.-]+$/;
+      return facultyRegex.test(email);
+    }
+    return false;
+  };
 
-  // Handle the form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null);
 
     if (!email || !password) {
       setError('Please fill in both email and password fields.');
       return;
     }
 
-    if (!isEmailValid(email)) {
-      setError('Please use a valid email ending with @gmail.com.');
+    if (!isEmailValid(email, role)) {
+      setError(
+        role === 'student'
+          ? 'Invalid student email. Use 22wh1a12XX@domain format where XX is between 01 and 65.'
+          : 'Faculty email must contain only letters before @.'
+      );
       return;
     }
 
-    const commonPassword = '123456';
-    if (password !== commonPassword) {
+    if (password !== '123456') {
       setError('Invalid password. Please use the correct password.');
       return;
     }
@@ -41,12 +54,7 @@ function SignIn() {
       });
 
       localStorage.setItem('token', response.data.token);
-
-      if (role === 'student') {
-        navigate('/StudentDashboard');
-      } else {
-        navigate('/FacultyDashboard');
-      }
+      navigate(role === 'student' ? '/StudentDashboard' : '/FacultyDashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Something went wrong. Please try again.');
     }
@@ -57,11 +65,8 @@ function SignIn() {
   return (
     <div style={{ ...styles.wrapper, backgroundColor: theme.background, color: theme.textColor }}>
       <div style={styles.topBar}>
-        <h1 style={styles.title}>GitHub Sign In</h1>
-        <button
-          onClick={() => setDarkMode(!darkMode)}
-          style={styles.themeToggle}
-        >
+        <h1 style={styles.title}>Novusphere Sign In</h1>
+        <button onClick={() => setDarkMode(!darkMode)} style={styles.themeToggle}>
           {darkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
         </button>
       </div>
@@ -100,7 +105,6 @@ function SignIn() {
   );
 }
 
-// Shared styles
 const styles = {
   wrapper: {
     minHeight: '100vh',
@@ -162,7 +166,6 @@ const styles = {
   },
 };
 
-// Light Theme
 const lightTheme = {
   background: '#f6f8fa',
   cardBg: '#ffffff',
@@ -170,7 +173,6 @@ const lightTheme = {
   textColor: '#24292e',
 };
 
-// Dark Theme
 const darkTheme = {
   background: '#0d1117',
   cardBg: '#161b22',
