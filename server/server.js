@@ -22,7 +22,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// ✅ Connect to MongoDB
+// Connect to MongoDB
 mongoose.connect(
   'mongodb+srv://koppolsahithi:KZfoTd1MeDaMJQ25@cluster0.fhtmrse.mongodb.net/mernappdb?retryWrites=true&w=majority',
   { useNewUrlParser: true, useUnifiedTopology: true }
@@ -30,22 +30,29 @@ mongoose.connect(
   .then(() => console.log('✅ MongoDB connected'))
   .catch((err) => console.log('MongoDB connection error:', err));
 
-// ✅ Job Schema — NOW INCLUDES "link"
+// Job Schema
 const JobSchema = new mongoose.Schema({
   title: String,
   type: String,
   description: String,
-  link: String, // ✅ NEW FIELD
+  link: String,
   deadline: String,
 });
 const Job = mongoose.model('Job', JobSchema);
 
-// Root
+// Status Schema for per-user status map
+const StatusSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true },
+  status: { type: Map, of: String, default: {} },
+});
+const Status = mongoose.model('Status', StatusSchema);
+
+// Root route
 app.get('/', (req, res) => {
   res.json({ message: 'API is running successfully' });
 });
 
-// SignIn
+// SignIn route
 app.post('/signin', async (req, res) => {
   const { email, password, role } = req.body;
 
@@ -63,7 +70,13 @@ app.post('/signin', async (req, res) => {
       _id: new mongoose.Types.ObjectId(),
     };
 
-    const token = jwt.sign({ userId: mockUser._id, role: mockUser.role }, 'your_jwt_secret', { expiresIn: '1h' });
+    // ✅ Include email in token
+    const token = jwt.sign(
+      { userId: mockUser._id, role: mockUser.role, email: mockUser.email },
+      'your_jwt_secret',
+      { expiresIn: '1h' }
+    );
+
     res.json({ message: 'Login successful', token });
   } catch (error) {
     console.error(error);
@@ -71,7 +84,7 @@ app.post('/signin', async (req, res) => {
   }
 });
 
-// ✅ Post a job — NOW ACCEPTS "link"
+// Post a job
 app.post('/postjob', async (req, res) => {
   const { title, type, description, link, deadline } = req.body;
   try {
@@ -84,7 +97,7 @@ app.post('/postjob', async (req, res) => {
   }
 });
 
-// ✅ Get all jobs
+// Get all jobs
 app.get('/getjobs', async (req, res) => {
   try {
     const jobs = await Job.find();
@@ -95,7 +108,7 @@ app.get('/getjobs', async (req, res) => {
   }
 });
 
-// ✅ Delete a job
+// Delete a job
 app.delete('/deletejob/:id', async (req, res) => {
   try {
     await Job.findByIdAndDelete(req.params.id);
@@ -103,6 +116,43 @@ app.delete('/deletejob/:id', async (req, res) => {
   } catch (error) {
     console.error('Error deleting job:', error);
     res.status(500).json({ message: 'Error deleting job' });
+  }
+});
+
+// Get status map for a user
+app.get('/status/:email', async (req, res) => {
+  try {
+    const { email } = req.params;
+    const userStatus = await Status.findOne({ email });
+    if (userStatus) {
+      res.json({ status: Object.fromEntries(userStatus.status) });
+    } else {
+      res.json({ status: {} });
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error fetching status' });
+  }
+});
+
+// Update status map for a user
+app.post('/status/:email', async (req, res) => {
+  try {
+    const { email } = req.params;
+    const { status } = req.body;
+
+    const statusMap = new Map(Object.entries(status));
+
+    const userStatus = await Status.findOneAndUpdate(
+      { email },
+      { status: statusMap },
+      { upsert: true, new: true }
+    );
+
+    res.json({ message: 'Status updated', status: Object.fromEntries(userStatus.status) });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error updating status' });
   }
 });
 
