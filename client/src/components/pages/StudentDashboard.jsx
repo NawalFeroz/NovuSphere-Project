@@ -64,7 +64,7 @@ const StudentDashboard = () => {
     return [...allOpportunities]
       .filter(item => new Date(item.deadline) > now)
       .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
-      .slice(0, 2);
+      .slice(0, 3);
   };
 
   const filteredItems = getFiltered();
