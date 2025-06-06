@@ -5,10 +5,12 @@ import axios from 'axios';
 const FacultyDashboard = () => {
   const [postedEvents, setPostedEvents] = useState([]);
   const [view, setView] = useState('post');
+  const [jobStats, setJobStats] = useState([]);
 
   useEffect(() => {
-    fetchPostedEvents();
-  }, []);
+    if (view === 'view') fetchPostedEvents();
+    if (view === 'stats') fetchJobStats();
+  }, [view]);
 
   const fetchPostedEvents = async () => {
     try {
@@ -16,6 +18,15 @@ const FacultyDashboard = () => {
       setPostedEvents(response.data);
     } catch (error) {
       console.error('Error fetching posted events', error);
+    }
+  };
+
+  const fetchJobStats = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/job-stats');
+      setJobStats(response.data);
+    } catch (error) {
+      console.error('Error fetching job stats:', error);
     }
   };
 
@@ -53,34 +64,32 @@ const FacultyDashboard = () => {
       {/* Sidebar */}
       <aside className="w-64 bg-[#161b22] text-[#c9d1d9] p-6 border-r border-[#30363d]">
         <h2 className="text-2xl font-bold mb-6">Menu</h2>
-        <button
-          onClick={() => setView('post')}
-          className={`block w-full text-left px-4 py-2 mb-2 rounded border ${
-            view === 'post'
-              ? 'bg-blue-600 text-white'
-              : 'hover:bg-[#21262d] border-[#30363d]'
-          }`}
-        >
-          Post Job
-        </button>
-        <button
-          onClick={() => setView('view')}
-          className={`block w-full text-left px-4 py-2 rounded border ${
-            view === 'view'
-              ? 'bg-blue-600 text-white'
-              : 'hover:bg-[#21262d] border-[#30363d]'
-          }`}
-        >
-          View Posted Jobs
-        </button>
+        {['post', 'view', 'stats'].map((item) => (
+          <button
+            key={item}
+            onClick={() => setView(item)}
+            className={`block w-full text-left px-4 py-2 mb-2 rounded border ${
+              view === item
+                ? 'bg-blue-600 text-white'
+                : 'hover:bg-[#21262d] border-[#30363d]'
+            }`}
+          >
+            {item === 'post'
+              ? 'Post Job'
+              : item === 'view'
+              ? 'View Posted Jobs'
+              : 'Application Stats'}
+          </button>
+        ))}
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-8 overflow-y-auto">
         <h1 className="text-3xl font-bold mb-6 text-center text-[#58a6ff]">
           Faculty Dashboard
         </h1>
 
+        {/* Post Job View */}
         {view === 'post' && (
           <form
             onSubmit={handlePostEvent}
@@ -136,9 +145,12 @@ const FacultyDashboard = () => {
           </form>
         )}
 
+        {/* View Posted Jobs */}
         {view === 'view' && (
           <>
-            <h2 className="text-2xl font-semibold mb-4 text-white">Your Posted Events</h2>
+            <h2 className="text-2xl font-semibold mb-4 text-white">
+              Your Posted Events
+            </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {postedEvents.map((event) => (
                 <motion.div
@@ -146,9 +158,13 @@ const FacultyDashboard = () => {
                   whileHover={{ scale: 1.03 }}
                   className="bg-[#161b22] border border-[#30363d] p-4 rounded-lg shadow-md relative"
                 >
-                  <h3 className="text-xl font-bold mb-1 text-white">{event.title}</h3>
+                  <h3 className="text-xl font-bold mb-1 text-white">
+                    {event.title}
+                  </h3>
                   <p className="text-sm text-[#8b949e]">{event.type}</p>
-                  <p className="text-sm text-[#c9d1d9] mb-2">{event.description}</p>
+                  <p className="text-sm text-[#c9d1d9] mb-2">
+                    {event.description}
+                  </p>
                   <p className="text-sm mb-2">
                     Link:{' '}
                     <a
@@ -160,7 +176,9 @@ const FacultyDashboard = () => {
                       {event.link}
                     </a>
                   </p>
-                  <p className="text-sm text-[#8b949e]">Deadline: {event.deadline}</p>
+                  <p className="text-sm text-[#8b949e]">
+                    Deadline: {event.deadline}
+                  </p>
                   <button
                     onClick={() => handleDeleteJob(event._id)}
                     className="absolute top-2 right-2 text-red-500 hover:text-red-700 text-sm"
@@ -168,6 +186,41 @@ const FacultyDashboard = () => {
                     Delete
                   </button>
                 </motion.div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* Application Stats View */}
+        {view === 'stats' && (
+          <>
+            <h2 className="text-2xl font-semibold mb-4 text-white">
+              Application Statistics
+            </h2>
+            <div className="space-y-6">
+              {jobStats.map((job) => (
+                <div
+                  key={job.jobId}
+                  className="bg-[#161b22] border border-[#30363d] p-4 rounded-lg shadow-md"
+                >
+                  <h3 className="text-xl font-bold text-white">{job.title}</h3>
+                  <p className="text-sm text-green-400 mt-2">
+                    ✅ Applied: {job.applied.length}
+                  </p>
+                  <ul className="text-sm text-green-300 mb-2 list-disc pl-5">
+                    {job.applied.map((email, index) => (
+                      <li key={index}>{email}</li>
+                    ))}
+                  </ul>
+                  <p className="text-sm text-red-400">
+                    ❌ Not Applied: {job.notApplied.length}
+                  </p>
+                  <ul className="text-sm text-red-300 list-disc pl-5">
+                    {job.notApplied.map((email, index) => (
+                      <li key={index}>{email}</li>
+                    ))}
+                  </ul>
+                </div>
               ))}
             </div>
           </>
