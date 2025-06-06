@@ -7,7 +7,6 @@ function SignIn() {
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('student');
   const [error, setError] = useState(null);
-  const [darkMode, setDarkMode] = useState(false);
   const navigate = useNavigate();
 
   const isEmailValid = (email, role) => {
@@ -60,15 +59,12 @@ function SignIn() {
     }
   };
 
-  const theme = darkMode ? darkTheme : lightTheme;
+  const theme = darkTheme;
 
   return (
     <div style={{ ...styles.wrapper, backgroundColor: theme.background, color: theme.textColor }}>
-      <div style={styles.topBar}>
-        <h1 style={styles.title}>Novusphere Sign In</h1>
-        <button onClick={() => setDarkMode(!darkMode)} style={styles.themeToggle}>
-          {darkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
-        </button>
+      <div style={styles.titleBar}>
+        <h1 style={styles.title}>Novusphere</h1>
       </div>
       <div style={{ ...styles.card, backgroundColor: theme.cardBg, color: theme.textColor }}>
         <h2 style={styles.heading}>Sign In</h2>
@@ -110,47 +106,45 @@ const styles = {
     minHeight: '100vh',
     padding: '2rem',
     transition: 'background 0.3s',
-  },
-  topBar: {
     display: 'flex',
-    justifyContent: 'space-between',
+    flexDirection: 'column',
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  titleBar: {
     marginBottom: '2rem',
+    textAlign: 'center',
   },
   title: {
-    fontSize: '28px',
+    fontSize: '32px',
     fontWeight: '700',
-  },
-  themeToggle: {
-    fontSize: '16px',
-    background: 'none',
-    border: 'none',
-    cursor: 'pointer',
-    color: 'inherit',
+    color: '#58a6ff',
   },
   card: {
+    width: '100%',
     maxWidth: '400px',
-    margin: '0 auto',
     padding: '2rem',
     borderRadius: '6px',
     boxShadow: '0 1px 3px rgba(27,31,35,0.1)',
-    border: '1px solid #d0d7de',
+    border: '1px solid #30363d',
   },
   heading: {
     fontSize: '24px',
     fontWeight: '600',
     marginBottom: '1rem',
+    textAlign: 'center',
   },
   error: {
-    color: '#d73a49',
+    color: '#f85149',
     marginBottom: '1rem',
+    textAlign: 'center',
   },
   input: {
     width: '100%',
     padding: '10px',
     marginBottom: '1rem',
     fontSize: '14px',
-    border: '1px solid #d0d7de',
+    border: '1px solid #30363d',
     borderRadius: '6px',
   },
   button: {
@@ -164,13 +158,6 @@ const styles = {
     fontSize: '14px',
     cursor: 'pointer',
   },
-};
-
-const lightTheme = {
-  background: '#f6f8fa',
-  cardBg: '#ffffff',
-  inputBg: '#f6f8fa',
-  textColor: '#24292e',
 };
 
 const darkTheme = {
