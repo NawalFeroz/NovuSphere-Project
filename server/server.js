@@ -40,7 +40,7 @@ const JobSchema = new mongoose.Schema({
 });
 const Job = mongoose.model('Job', JobSchema);
 
-// Status Schema for per-user status map
+// Status Schema
 const StatusSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   status: { type: Map, of: String, default: {} },
@@ -70,7 +70,6 @@ app.post('/signin', async (req, res) => {
       _id: new mongoose.Types.ObjectId(),
     };
 
-    // ✅ Include email in token
     const token = jwt.sign(
       { userId: mockUser._id, role: mockUser.role, email: mockUser.email },
       'your_jwt_secret',
@@ -119,7 +118,7 @@ app.delete('/deletejob/:id', async (req, res) => {
   }
 });
 
-// Get status map for a user
+// Get status for a specific user
 app.get('/status/:email', async (req, res) => {
   try {
     const { email } = req.params;
@@ -135,12 +134,11 @@ app.get('/status/:email', async (req, res) => {
   }
 });
 
-// Update status map for a user
+// Update status for a specific user
 app.post('/status/:email', async (req, res) => {
   try {
     const { email } = req.params;
     const { status } = req.body;
-
     const statusMap = new Map(Object.entries(status));
 
     const userStatus = await Status.findOneAndUpdate(
@@ -156,6 +154,61 @@ app.post('/status/:email', async (req, res) => {
   }
 });
 
+// Helper function to generate full student email list
+function generateStudentEmails(start, end) {
+  const emails = [];
+  for (let i = start; i <= end; i++) {
+    const numStr = i.toString().padStart(4, '0');
+    emails.push(`22wh1a${numStr}@gmail.com`);
+  }
+  return emails;
+}
+
+// Get statistics for each job: who applied / not applied
+app.get('/job-stats', async (req, res) => {
+  try {
+    const jobs = await Job.find();
+    const statuses = await Status.find();
+
+    // Generate full email list: from 1201 to 1265
+    const fullEmailList = generateStudentEmails(1201, 1265);
+
+    const jobStats = jobs.map(job => {
+      const jobId = job._id.toString();
+
+      // Emails that applied for this job
+      const applied = [];
+      const appliedSet = new Set();
+
+      statuses.forEach(userStatus => {
+        const userEmail = userStatus.email;
+        const statusMap = userStatus.status || new Map();
+
+        if (statusMap.get(jobId) === 'applied') {
+          applied.push(userEmail);
+          appliedSet.add(userEmail);
+        }
+      });
+
+      // Emails who have NOT applied = full list minus appliedSet
+      const notApplied = fullEmailList.filter(email => !appliedSet.has(email));
+
+      return {
+        jobId,
+        title: job.title,
+        applied,
+        notApplied
+      };
+    });
+
+    res.json(jobStats);
+  } catch (error) {
+    console.error('Error fetching job statistics:', error);
+    res.status(500).json({ message: 'Failed to get job statistics' });
+  }
+});
+
+// Start server
 app.listen(5000, () => {
   console.log('🚀 Server running on http://localhost:5000');
 });
