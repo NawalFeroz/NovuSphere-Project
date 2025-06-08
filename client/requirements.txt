@@ -6,4 +6,5 @@ tailwindcss@3
 autoprefixer
 postcss
 react-modal
+axios
 jwt-decode
