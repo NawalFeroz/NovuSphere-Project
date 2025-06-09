@@ -6,6 +6,17 @@ const FacultyDashboard = () => {
   const [postedEvents, setPostedEvents] = useState([]);
   const [view, setView] = useState('post');
   const [jobStats, setJobStats] = useState([]);
+  const [expandedSections, setExpandedSections] = useState({});
+
+  // Generate full user list
+  const generateAllUsers = () => {
+    const emails = [];
+    for (let i = 1201; i <= 1265; i++) {
+      const roll = `22wh1a${i.toString().padStart(4, '0')}`;
+      emails.push(`${roll}@gmail.com`);
+    }
+    return emails;
+  };
 
   useEffect(() => {
     if (view === 'view') fetchPostedEvents();
@@ -24,7 +35,19 @@ const FacultyDashboard = () => {
   const fetchJobStats = async () => {
     try {
       const response = await axios.get('http://localhost:5000/job-stats');
-      setJobStats(response.data);
+      const allUsers = generateAllUsers();
+
+      const enrichedStats = response.data.map((job) => {
+        const applied = job.applied ?? [];
+        const pending = allUsers.filter((email) => !applied.includes(email));
+        return {
+          ...job,
+          applied,
+          pending,
+        };
+      });
+
+      setJobStats(enrichedStats);
     } catch (error) {
       console.error('Error fetching job stats:', error);
     }
@@ -57,6 +80,27 @@ const FacultyDashboard = () => {
     } catch (error) {
       console.error('Error deleting job:', error);
     }
+  };
+
+  const toggleSection = (jobId, type) => {
+    setExpandedSections((prev) => ({
+      ...prev,
+      [jobId]: {
+        ...prev[jobId],
+        [type]: !prev[jobId]?.[type],
+      },
+    }));
+  };
+
+  const downloadCSV = (emails, filename) => {
+    const csv = 'data:text/csv;charset=utf-8,' + emails.join('\n');
+    const encoded = encodeURI(csv);
+    const link = document.createElement('a');
+    link.setAttribute('href', encoded);
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -203,23 +247,70 @@ const FacultyDashboard = () => {
                   key={job.jobId}
                   className="bg-[#161b22] border border-[#30363d] p-4 rounded-lg shadow-md"
                 >
-                  <h3 className="text-xl font-bold text-white">{job.title}</h3>
-                  <p className="text-sm text-green-400 mt-2">
-                    ✅ Applied: {job.applied.length}
-                  </p>
-                  <ul className="text-sm text-green-300 mb-2 list-disc pl-5">
-                    {job.applied.map((email, index) => (
-                      <li key={index}>{email}</li>
-                    ))}
-                  </ul>
-                  <p className="text-sm text-red-400">
-                    ❌ Not Applied: {job.notApplied.length}
-                  </p>
-                  <ul className="text-sm text-red-300 list-disc pl-5">
-                    {job.notApplied.map((email, index) => (
-                      <li key={index}>{email}</li>
-                    ))}
-                  </ul>
+                  <h3 className="text-xl font-bold text-white mb-2">
+                    {job.title}
+                  </h3>
+
+                  {/* Applied Section */}
+                  <div className="mb-4">
+                    <button
+                      onClick={() => toggleSection(job.jobId, 'applied')}
+                      className="text-green-400 hover:underline"
+                    >
+                      <p className="text-sm text-green-400 mt-2">
+                        ✅ Applied: {job.applied.length}
+                      </p>
+                    </button>
+                    {expandedSections[job.jobId]?.applied && (
+                      <div className="mt-2">
+                        <ul className="text-sm text-green-300 list-disc pl-5">
+                          {job.applied.map((email, i) => (
+                            <li key={i}>{email}</li>
+                          ))}
+                        </ul>
+                        <button
+                          onClick={() =>
+                            downloadCSV(job.applied, `${job.title}_applied.csv`)
+                          }
+                          className="mt-2 px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+                        >
+                          Download CSV
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Pending Section */}
+                  <div>
+                    <button
+                      onClick={() => toggleSection(job.jobId, 'pending')}
+                      className="text-yellow-400 hover:underline"
+                    >
+                      <p className="text-sm text-yellow-400 mt-2">
+                        🕓 Pending: {job.pending.length}
+                      </p>
+                    </button>
+                    {expandedSections[job.jobId]?.pending && (
+                      <div className="mt-2">
+                        <ul className="text-sm text-yellow-300 list-disc pl-5">
+                          {job.pending.map((email, i) => (
+                            <li key={i}>{email}</li>
+                          ))}
+                        </ul>
+                        <button
+                          onClick={() =>
+                            downloadCSV(
+                              job.pending,
+                              `${job.title}_pending.csv`
+                            )
+                          }
+                          className="mt-2 px-3 py-1 bg-yellow-500 text-black rounded text-sm hover:bg-yellow-600"
+                        >
+                          Download CSV
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

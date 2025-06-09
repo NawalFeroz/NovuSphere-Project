@@ -197,7 +197,7 @@ app.get('/job-stats', async (req, res) => {
         jobId,
         title: job.title,
         applied,
-        notApplied
+        pending: notApplied
       };
     });
 
