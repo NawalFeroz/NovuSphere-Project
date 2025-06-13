@@ -22,7 +22,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Connect to MongoDB
+// MongoDB connection
 mongoose.connect(
   'mongodb+srv://koppolsahithi:KZfoTd1MeDaMJQ25@cluster0.fhtmrse.mongodb.net/mernappdb?retryWrites=true&w=majority',
   { useNewUrlParser: true, useUnifiedTopology: true }
@@ -30,7 +30,7 @@ mongoose.connect(
   .then(() => console.log('✅ MongoDB connected'))
   .catch((err) => console.log('MongoDB connection error:', err));
 
-// Job Schema
+// Schemas
 const JobSchema = new mongoose.Schema({
   title: String,
   type: String,
@@ -40,7 +40,6 @@ const JobSchema = new mongoose.Schema({
 });
 const Job = mongoose.model('Job', JobSchema);
 
-// Status Schema
 const StatusSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   status: { type: Map, of: String, default: {} },
@@ -52,7 +51,7 @@ app.get('/', (req, res) => {
   res.json({ message: 'API is running successfully' });
 });
 
-// SignIn route
+// SignIn
 app.post('/signin', async (req, res) => {
   const { email, password, role } = req.body;
 
@@ -83,7 +82,7 @@ app.post('/signin', async (req, res) => {
   }
 });
 
-// Post a job
+// Job CRUD
 app.post('/postjob', async (req, res) => {
   const { title, type, description, link, deadline } = req.body;
   try {
@@ -96,7 +95,6 @@ app.post('/postjob', async (req, res) => {
   }
 });
 
-// Get all jobs
 app.get('/getjobs', async (req, res) => {
   try {
     const jobs = await Job.find();
@@ -107,7 +105,6 @@ app.get('/getjobs', async (req, res) => {
   }
 });
 
-// Delete a job
 app.delete('/deletejob/:id', async (req, res) => {
   try {
     await Job.findByIdAndDelete(req.params.id);
@@ -118,23 +115,18 @@ app.delete('/deletejob/:id', async (req, res) => {
   }
 });
 
-// Get status for a specific user
+// Status routes
 app.get('/status/:email', async (req, res) => {
   try {
     const { email } = req.params;
     const userStatus = await Status.findOne({ email });
-    if (userStatus) {
-      res.json({ status: Object.fromEntries(userStatus.status) });
-    } else {
-      res.json({ status: {} });
-    }
+    res.json({ status: userStatus ? Object.fromEntries(userStatus.status) : {} });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Error fetching status' });
   }
 });
 
-// Update status for a specific user
 app.post('/status/:email', async (req, res) => {
   try {
     const { email } = req.params;
@@ -154,7 +146,7 @@ app.post('/status/:email', async (req, res) => {
   }
 });
 
-// Helper function to generate full student email list
+// Utility
 function generateStudentEmails(start, end) {
   const emails = [];
   for (let i = start; i <= end; i++) {
@@ -164,40 +156,45 @@ function generateStudentEmails(start, end) {
   return emails;
 }
 
-// Get statistics for each job: who applied / not applied
+// ✅ Fixed /job-stats route
 app.get('/job-stats', async (req, res) => {
   try {
     const jobs = await Job.find();
     const statuses = await Status.find();
-
-    // Generate full email list: from 1201 to 1265
     const fullEmailList = generateStudentEmails(1201, 1265);
 
     const jobStats = jobs.map(job => {
       const jobId = job._id.toString();
 
-      // Emails that applied for this job
-      const applied = [];
-      const appliedSet = new Set();
+      const appliedEmails = [];
+      const qualifiedEmails = [];
+      const wonEmails = [];
 
       statuses.forEach(userStatus => {
-        const userEmail = userStatus.email;
-        const statusMap = userStatus.status || new Map();
+        const statusMap = userStatus.status instanceof Map
+          ? userStatus.status
+          : new Map(Object.entries(userStatus.status));
 
-        if (statusMap.get(jobId) === 'applied') {
-          applied.push(userEmail);
-          appliedSet.add(userEmail);
-        }
+        const jobStatus = statusMap.get(jobId);
+
+        if (jobStatus === 'applied') appliedEmails.push(userStatus.email);
+        else if (jobStatus === 'qualified') qualifiedEmails.push(userStatus.email);
+        else if (jobStatus === 'won') wonEmails.push(userStatus.email);
       });
 
-      // Emails who have NOT applied = full list minus appliedSet
-      const notApplied = fullEmailList.filter(email => !appliedSet.has(email));
+      const allMarked = new Set([...appliedEmails, ...qualifiedEmails, ...wonEmails]);
+      const pending = fullEmailList.filter(email => !allMarked.has(email));
 
       return {
-        jobId,
+        _id: jobId,
         title: job.title,
-        applied,
-        pending: notApplied
+        applied: appliedEmails.length,
+        qualified: qualifiedEmails.length,
+        won: wonEmails.length,
+        pending,
+        appliedEmails,
+        qualifiedEmails,
+        wonEmails,
       };
     });
 
@@ -209,6 +206,7 @@ app.get('/job-stats', async (req, res) => {
 });
 
 // Start server
-app.listen(5000, () => {
-  console.log('🚀 Server running on http://localhost:5000');
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`✅ Server is running on http://localhost:${PORT}`);
 });

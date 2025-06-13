@@ -5,16 +5,29 @@ import axios from 'axios';
 function LandingPage() {
   const navigate = useNavigate();
   const [upcomingJobs, setUpcomingJobs] = useState([]);
+  const [selectedJob, setSelectedJob] = useState(null);
 
   useEffect(() => {
     const fetchUpcomingJobs = async () => {
       try {
         const response = await axios.get('http://localhost:5000/getjobs');
         const now = new Date();
-        const upcoming = response.data
-          .filter(job => new Date(job.deadline) > now)
-          .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
-          .slice(0, 3);
+        const upcoming = await Promise.all(
+          response.data
+            .filter(job => new Date(job.deadline) > now)
+            .sort((a, b) => new Date(a.deadline) - new Date(b.deadline))
+            .slice(0, 3)
+            .map(async (job) => {
+              let content = '';
+              try {
+                const scrapeResponse = await axios.post('http://localhost:5000/scrape-summary', { url: job.link });
+                content = scrapeResponse.data.summary || 'No description available.';
+              } catch (err) {
+                console.error('Scraping failed for:', job.link);
+              }
+              return { ...job, description: content };
+            })
+        );
         setUpcomingJobs(upcoming);
       } catch (error) {
         console.error('Error fetching jobs:', error);
@@ -25,29 +38,51 @@ function LandingPage() {
   }, []);
 
   const handleApplyNow = () => {
-    navigate('/signin');
+    navigate('/signup');
   };
 
-  const darkBackground = '#0d1117';  // GitHub dark bg
-  const darkTextColor = '#c9d1d9';   // GitHub light text
-  const cardBackground = '#161b22';  // Slightly lighter card bg
-  const buttonBlue = '#238636';      // Greenish-blue button color like GitHub's "green"
+  const handleLogin = () => {
+    navigate('/login');
+  };
+
+  const darkBackground = '#0d1117';
+  const darkTextColor = '#c9d1d9';
+  const cardBackground = '#161b22';
+  const buttonBlue = '#238636';
   const buttonHover = '#2ea043';
 
   return (
     <div style={{ fontFamily: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif', backgroundColor: darkBackground, color: darkTextColor, minHeight: '100vh' }}>
       <header style={{
-        minHeight: '40vh',
+        minHeight: '50vh',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
         padding: '2rem',
         textAlign: 'center',
+        background: '#1f2937',
+        position: 'relative'
       }}>
-        <h1 style={{ fontSize: '5rem', margin: 0, fontWeight: '800' }}>Novusphere</h1>
-        <p style={{ fontSize: '1.5rem', marginTop: '10px', fontWeight: '400' }}>
-          Gateway to Emerging Tech Opportunities
+        <button
+          onClick={handleLogin}
+          style={{
+            position: 'absolute',
+            top: '20px',
+            right: '20px',
+            padding: '10px 20px',
+            backgroundColor: '#2563eb',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer'
+          }}
+        >
+          Login
+        </button>
+        <h1 style={{ fontSize: '4rem', margin: 0, fontWeight: '800' }}>Novusphere</h1>
+        <p style={{ fontSize: '1.5rem', marginTop: '10px', fontWeight: '400', maxWidth: '600px' }}>
+          Discover, Compete, and Elevate Your Career through Tech Events & Hackathons
         </p>
       </header>
 
@@ -63,51 +98,98 @@ function LandingPage() {
             <p style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#8b949e' }}>No upcoming opportunities available.</p>
           )}
           {upcomingJobs.map(job => (
-            <div key={job._id} style={{
-              background: cardBackground,
-              borderRadius: '12px',
-              padding: '20px',
-              boxShadow: '0 4px 12px rgb(0 0 0 / 0.5)',
-            }}>
+            <div
+              key={job._id}
+              onClick={() => setSelectedJob(job)}
+              style={{
+                background: cardBackground,
+                borderRadius: '12px',
+                padding: '20px',
+                boxShadow: '0 4px 12px rgb(0 0 0 / 0.5)',
+                cursor: 'pointer'
+              }}
+            >
               <h3 style={{ fontSize: '1.5rem', marginBottom: '10px', fontWeight: '700' }}>{job.title}</h3>
-              <p style={{ color: '#8b949e', marginBottom: '10px', fontWeight: '500' }}>{job.type}</p>
-              <p style={{ fontSize: '1rem', marginBottom: '15px', lineHeight: '1.4', color: '#c9d1d9' }}>{job.description}</p>
-              <p style={{ fontSize: '0.9rem', color: '#8b949e' }}>
-                Deadline: {new Date(job.deadline).toLocaleDateString()}
-              </p>
+              <p><strong>Event Company:</strong> {job.company || 'N/A'}</p>
+              <p><strong>Event Type:</strong> {job.type}</p>
+              <p><strong>Deadline:</strong> {new Date(job.deadline).toLocaleDateString()}</p>
+              <p style={{ color: '#58a6ff', marginTop: '10px' }}><em>Click to know more</em></p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Sign In + Apply Now */}
-      <section style={{ textAlign: 'center', padding: '30px 20px', maxWidth: '600px', margin: '0 auto' }}>
-        <p style={{ fontSize: '1.5rem', fontWeight: '500', marginBottom: '15px' }}>Sign in to apply now</p>
-        <button
-          onClick={handleApplyNow}
-          style={{
-            padding: '12px 40px',
-            fontSize: '1.25rem',
-            fontWeight: '600',
-            backgroundColor: buttonBlue,
-            border: 'none',
-            borderRadius: '8px',
-            color: 'white',
-            cursor: 'pointer',
-            transition: 'background-color 0.3s ease',
-          }}
-          onMouseEnter={e => e.currentTarget.style.backgroundColor = buttonHover}
-          onMouseLeave={e => e.currentTarget.style.backgroundColor = buttonBlue}
-        >
-          Apply Now
-        </button>
-      </section>
+      {/* Modal */}
+      {selectedJob && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.7)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            background: cardBackground,
+            padding: '30px',
+            borderRadius: '10px',
+            maxWidth: '600px',
+            width: '90%',
+            color: darkTextColor,
+            position: 'relative'
+          }}>
+            <button
+              onClick={() => setSelectedJob(null)}
+              style={{
+                position: 'absolute',
+                top: '10px',
+                right: '10px',
+                background: 'transparent',
+                border: 'none',
+                color: darkTextColor,
+                fontSize: '1.5rem',
+                cursor: 'pointer'
+              }}
+            >&times;</button>
+            <h2>{selectedJob.title}</h2>
+            <p><strong>Event Company:</strong> {selectedJob.company || 'N/A'}</p>
+            <p><strong>Event Type:</strong> {selectedJob.type}</p>
+            <p><strong>Team Size:</strong> {selectedJob.teamSize || 'N/A'}</p>
+            <p><strong>Mode:</strong> {selectedJob.mode || 'Online/Offline'}</p>
+            <p><strong>Description:</strong> {selectedJob.description}</p>
+            <p><strong>Deadline:</strong> {new Date(selectedJob.deadline).toLocaleDateString()}</p>
+            <button
+              onClick={handleApplyNow}
+              style={{
+                marginTop: '10px',
+                padding: '10px 30px',
+                fontSize: '1rem',
+                fontWeight: '600',
+                backgroundColor: buttonBlue,
+                border: 'none',
+                borderRadius: '6px',
+                color: 'white',
+                cursor: 'pointer',
+                transition: 'background-color 0.3s ease',
+              }}
+              onMouseEnter={e => e.currentTarget.style.backgroundColor = buttonHover}
+              onMouseLeave={e => e.currentTarget.style.backgroundColor = buttonBlue}
+            >
+              Apply Now
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* About Section */}
       <section style={{ background: '#161b22', padding: '50px 20px', textAlign: 'center', maxWidth: '800px', margin: '0 auto 40px' }}>
-        <h2 style={{ marginBottom: '20px', fontWeight: '600', fontSize: '2rem' }}>About Novusphere</h2>
+        <h2 style={{ marginBottom: '20px', fontWeight: '600', fontSize: '2rem' }}>Why Choose Novusphere?</h2>
         <p style={{ maxWidth: '700px', margin: '0 auto', color: darkTextColor, fontSize: '1.1rem', lineHeight: '1.6' }}>
-          Novusphere is a dynamic platform designed to bring creative minds together to collaborate, innovate, and lead the future.
+          From discovering groundbreaking hackathons and competitions to forming winning teams and getting hired by top tech companies, Novusphere is your one-stop destination to make your mark in the tech world. Join a growing community that thrives on collaboration, innovation, and opportunity.
         </p>
       </section>
 
