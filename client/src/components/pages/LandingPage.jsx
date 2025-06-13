@@ -5,7 +5,6 @@ import axios from 'axios';
 function LandingPage() {
   const navigate = useNavigate();
   const [upcomingJobs, setUpcomingJobs] = useState([]);
-  const [selectedJob, setSelectedJob] = useState(null);
 
   useEffect(() => {
     const fetchUpcomingJobs = async () => {
@@ -98,92 +97,35 @@ function LandingPage() {
             <p style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#8b949e' }}>No upcoming opportunities available.</p>
           )}
           {upcomingJobs.map(job => (
-            <div
+            <a
               key={job._id}
-              onClick={() => setSelectedJob(job)}
+              href={job.link}
+              target="_blank"
+              rel="noopener noreferrer"
               style={{
-                background: cardBackground,
-                borderRadius: '12px',
-                padding: '20px',
-                boxShadow: '0 4px 12px rgb(0 0 0 / 0.5)',
-                cursor: 'pointer'
+                textDecoration: 'none',
+                color: 'inherit',
               }}
             >
-              <h3 style={{ fontSize: '1.5rem', marginBottom: '10px', fontWeight: '700' }}>{job.title}</h3>
-              <p><strong>Event Company:</strong> {job.company || 'N/A'}</p>
-              <p><strong>Event Type:</strong> {job.type}</p>
-              <p><strong>Deadline:</strong> {new Date(job.deadline).toLocaleDateString()}</p>
-              <p style={{ color: '#58a6ff', marginTop: '10px' }}><em>Click to know more</em></p>
-            </div>
+              <div
+                style={{
+                  background: cardBackground,
+                  borderRadius: '12px',
+                  padding: '20px',
+                  boxShadow: '0 4px 12px rgb(0 0 0 / 0.5)',
+                  cursor: 'pointer'
+                }}
+              >
+                <h3 style={{ fontSize: '1.5rem', marginBottom: '10px', fontWeight: '700' }}>{job.title}</h3>
+                <p><strong>Event Company:</strong> {job.company || 'N/A'}</p>
+                <p><strong>Event Type:</strong> {job.type}</p>
+                <p><strong>Deadline:</strong> {new Date(job.deadline).toLocaleDateString()}</p>
+                <p style={{ color: '#58a6ff', marginTop: '10px' }}><em>Click to know more</em></p>
+              </div>
+            </a>
           ))}
         </div>
       </section>
-
-      {/* Modal */}
-      {selectedJob && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0,0,0,0.7)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 1000
-        }}>
-          <div style={{
-            background: cardBackground,
-            padding: '30px',
-            borderRadius: '10px',
-            maxWidth: '600px',
-            width: '90%',
-            color: darkTextColor,
-            position: 'relative'
-          }}>
-            <button
-              onClick={() => setSelectedJob(null)}
-              style={{
-                position: 'absolute',
-                top: '10px',
-                right: '10px',
-                background: 'transparent',
-                border: 'none',
-                color: darkTextColor,
-                fontSize: '1.5rem',
-                cursor: 'pointer'
-              }}
-            >&times;</button>
-            <h2>{selectedJob.title}</h2>
-            <p><strong>Event Company:</strong> {selectedJob.company || 'N/A'}</p>
-            <p><strong>Event Type:</strong> {selectedJob.type}</p>
-            <p><strong>Team Size:</strong> {selectedJob.teamSize || 'N/A'}</p>
-            <p><strong>Mode:</strong> {selectedJob.mode || 'Online/Offline'}</p>
-            <p><strong>Description:</strong> {selectedJob.description}</p>
-            <p><strong>Deadline:</strong> {new Date(selectedJob.deadline).toLocaleDateString()}</p>
-            <button
-              onClick={handleApplyNow}
-              style={{
-                marginTop: '10px',
-                padding: '10px 30px',
-                fontSize: '1rem',
-                fontWeight: '600',
-                backgroundColor: buttonBlue,
-                border: 'none',
-                borderRadius: '6px',
-                color: 'white',
-                cursor: 'pointer',
-                transition: 'background-color 0.3s ease',
-              }}
-              onMouseEnter={e => e.currentTarget.style.backgroundColor = buttonHover}
-              onMouseLeave={e => e.currentTarget.style.backgroundColor = buttonBlue}
-            >
-              Apply Now
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* About Section */}
       <section style={{ background: '#161b22', padding: '50px 20px', textAlign: 'center', maxWidth: '800px', margin: '0 auto 40px' }}>
@@ -202,5 +144,3 @@ function LandingPage() {
 }
 
 export default LandingPage;
-
-
