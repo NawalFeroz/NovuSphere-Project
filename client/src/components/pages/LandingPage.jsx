@@ -38,7 +38,7 @@ function LandingPage() {
   }, []);
 
   const handleApplyNow = () => {
-    navigate('/signup');
+    navigate('/signin');
   };
 
   const handleLogin = () => {
@@ -202,3 +202,5 @@ function LandingPage() {
 }
 
 export default LandingPage;
+
+
