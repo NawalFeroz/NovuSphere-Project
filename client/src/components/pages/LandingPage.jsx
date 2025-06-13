@@ -42,7 +42,7 @@ function LandingPage() {
   };
 
   const handleLogin = () => {
-    navigate('/login');
+    navigate('/signin');
   };
 
   const darkBackground = '#0d1117';
