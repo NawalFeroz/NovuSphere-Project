@@ -127,6 +127,38 @@ function LandingPage() {
         </div>
       </section>
 
+      {/* CTA Bar */}
+      <section style={{
+        background: '#1f2937',
+        padding: '30px 20px',
+        textAlign: 'center',
+        color: '#ffffff',
+        borderTop: '1px solid #2d333b',
+        borderBottom: '1px solid #2d333b',
+        margin: '40px 0'
+      }}>
+        <h2 style={{ marginBottom: '10px', fontSize: '1.8rem', fontWeight: '600' }}>Want to apply? Sign in now</h2>
+        <button
+          onClick={() => navigate('/signin')}
+          style={{
+            marginTop: '15px',
+            padding: '10px 30px',
+            fontSize: '1rem',
+            fontWeight: '600',
+            backgroundColor: '#2563eb',
+            border: 'none',
+            borderRadius: '6px',
+            color: 'white',
+            cursor: 'pointer',
+            transition: 'background-color 0.3s ease'
+          }}
+          onMouseEnter={e => e.currentTarget.style.backgroundColor = '#3b82f6'}
+          onMouseLeave={e => e.currentTarget.style.backgroundColor = '#2563eb'}
+        >
+          Sign In
+        </button>
+      </section>
+
       {/* About Section */}
       <section style={{ background: '#161b22', padding: '50px 20px', textAlign: 'center', maxWidth: '800px', margin: '0 auto 40px' }}>
         <h2 style={{ marginBottom: '20px', fontWeight: '600', fontSize: '2rem' }}>Why Choose Novusphere?</h2>
