@@ -301,7 +301,13 @@
   top: 1.5rem;
   right: 2rem;
   z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-width: 250px;
 }
+
 
 /* Logout Button */
 .logout-button {
@@ -317,4 +323,28 @@
 
 .logout-button:hover {
   background-color: #dc2626;
+}
+.status-stars {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-right: 1rem;
+  color: #f9fafb;
+}
+
+.star-block {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.9rem;
+}
+
+.silver-star {
+  color: silver;
+  font-size: 1rem;
+}
+
+.gold-star {
+  color: gold;
+  font-size: 1rem;
 }
