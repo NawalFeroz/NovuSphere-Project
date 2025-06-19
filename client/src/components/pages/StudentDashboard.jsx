@@ -139,6 +139,21 @@ const StudentDashboard = () => {
     <div className="dashboard-container">
       <div className="dashboard-main">
         <div className="dashboard-header">
+          <div className="status-stars">
+            <div className="star-block">
+              <span>Qualified:</span>
+              {Array(statusCounts.qualified).fill().map((_, i) => (
+                <span key={i} className="silver-star">★</span>
+              ))}
+            </div>
+            <div className="star-block">
+              <span>Won:</span>
+              {Array(statusCounts.won).fill().map((_, i) => (
+                <span key={i} className="gold-star">★</span>
+              ))}
+            </div>
+          </div>
+
           <button className="logout-button" onClick={handleLogout}>
             Logout
           </button>
