@@ -36,12 +36,8 @@ const StudentDashboard = () => {
 
         allOpportunities.forEach(item => {
           const status = serverStatus[item._id];
-          if (status === 'just saw') {
-            normalized[item._id] = 'pending';
-          } else if (['applied', 'pending', 'qualified', 'won'].includes(status)) {
+          if (['applied', 'pending', 'qualified', 'won', 'just saw'].includes(status)) {
             normalized[item._id] = status;
-          } else {
-            normalized[item._id] = 'applied';
           }
         });
 
@@ -61,13 +57,13 @@ const StudentDashboard = () => {
 
   const getFiltered = () => {
     return allOpportunities.filter(item => {
-      const status = (statusMap[item._id] || 'applied').toLowerCase();
+      const status = statusMap[item._id];
 
       switch (filter) {
         case 'Applied':
-          return ['applied', 'qualified', 'won', undefined, null, ''].includes(status);
+          return status === 'applied';
         case 'Pending':
-          return ['pending', 'just saw'].includes(status);
+          return status === 'pending' || status === 'just saw';
         case 'Qualified':
           return status === 'qualified';
         case 'Won':
@@ -87,16 +83,16 @@ const StudentDashboard = () => {
     const status = statusMap[id];
     switch (status) {
       case 'applied':
-        return '#dbeafe';
+        return '#fde047'; // Yellow
       case 'pending':
       case 'just saw':
-        return '#e5e7eb';
+        return '#e5e7eb'; // Gray
       case 'qualified':
-        return '#fed7aa';
+        return '#fed7aa'; // Light orange
       case 'won':
-        return '#bbf7d0';
+        return '#bbf7d0'; // Green
       default:
-        return 'white';
+        return 'white'; // Default
     }
   };
 
@@ -116,25 +112,17 @@ const StudentDashboard = () => {
   };
 
   Object.values(statusMap).forEach(status => {
-    if (['applied', 'qualified', 'won'].includes(status)) {
-      statusCounts.applied++;
-    }
-    if (status === 'pending' || status === 'just saw') {
-      statusCounts.pending++;
-    }
-    if (status === 'qualified') {
-      statusCounts.qualified++;
-    }
-    if (status === 'won') {
-      statusCounts.won++;
-    }
+    if (status === 'applied') statusCounts.applied++;
+    if (status === 'pending' || status === 'just saw') statusCounts.pending++;
+    if (status === 'qualified') statusCounts.qualified++;
+    if (status === 'won') statusCounts.won++;
   });
 
   const totalCount = allOpportunities.length || 1;
 
   const colors = {
-    applied: '#3b82f6',
-    pending: '#fde047',
+    applied: '#fde047',
+    pending: '#e5e7eb',
     qualified: '#fb923c',
     won: '#34d399',
   };
@@ -192,12 +180,11 @@ const StudentDashboard = () => {
                     </button>
                   </div>
                   <select
-                    value={
-                      ['qualified', 'won'].includes(statusMap[item._id])
-                        ? statusMap[item._id]
-                        : ''
-                    }
-                    onChange={(e) => updateStatus(item._id, e.target.value)}
+                    value={['qualified', 'won'].includes(statusMap[item._id]) ? statusMap[item._id] : ''}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val) updateStatus(item._id, val);
+                    }}
                     className="status-dropdown"
                   >
                     <option value="">-- Status --</option>
@@ -278,7 +265,7 @@ const StudentDashboard = () => {
       </div>
 
       <footer className="dashboard-footer">
-        © {new Date().getFullYear()} Nawal Feroz , Srihitha Redyy , KVS Sahithi
+        © {new Date().getFullYear()} Nawal Feroz , Srihitha Reddy , KVS Sahithi
       </footer>
     </div>
   );
