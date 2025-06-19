@@ -7,6 +7,7 @@
   min-height: 100vh;
   gap: 2rem;
   color: #f9fafb;
+  position: relative; /* Needed for absolute header */
 }
 
 .dashboard-main {
@@ -64,32 +65,27 @@
   cursor: pointer;
 }
 
-/* Card Hover */
 .opportunity-card:hover {
   box-shadow: 0 8px 16px rgba(255, 255, 255, 0.1);
 }
 
-/* Job Title */
 .opportunity-card h3 {
   font-size: 1.2rem;
   font-weight: 700;
   color: #f9fafb;
 }
 
-/* Job Type */
 .opportunity-card .type {
   font-size: 0.9rem;
   color: #60a5fa;
   margin-bottom: 0.3rem;
 }
 
-/* Job Description */
 .opportunity-card p {
   font-size: 0.9rem;
   color: #d1d5db;
 }
 
-/* Deadline */
 .opportunity-card .deadline {
   margin-top: 0.5rem;
   font-size: 0.85rem;
@@ -116,7 +112,6 @@
   background: #2563eb;
 }
 
-/* Disabled Apply Button */
 .apply-button.disabled {
   background-color: #9ca3af;
   cursor: not-allowed;
@@ -130,7 +125,7 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  margin-top: 1.2rem;
+  margin-top: 4.5rem; /* Pushed down to clear header */
 }
 
 /* Sidebar Boxes */
@@ -143,14 +138,12 @@
   color: #f9fafb;
 }
 
-/* Deadline Heading */
 .deadlines-box h3 {
   font-size: 1.5rem;
   font-weight: 600;
   margin-bottom: 1rem;
 }
 
-/* Deadline Items */
 .deadline-item {
   cursor: pointer;
   margin-bottom: 0.75rem;
@@ -201,7 +194,7 @@
   color: #3b82f6;
 }
 
-/* Status Colors (overwrite via inline style marker) */
+/* Status Colors */
 .opportunity-card[style*="#dbeafe"] {
   background-color: #60a5fa !important;
   color: #f9fafb;
@@ -252,7 +245,6 @@
   transition: width 0.4s ease;
 }
 
-/* Make progress bars clickable */
 .progress-bar-container.clickable {
   cursor: pointer;
   transition: background-color 0.2s ease;
@@ -284,6 +276,7 @@
     flex-direction: row;
     flex-wrap: wrap;
     gap: 1rem;
+    margin-top: 1rem;
   }
 
   .dashboard-footer {
@@ -291,28 +284,24 @@
     text-align: center;
     margin-top: 2rem;
   }
+
+  .dashboard-header {
+    position: static;
+    text-align: right;
+    margin-bottom: 1rem;
+  }
 }
 
-.nickname-prompt {
-  margin: 10px 0;
-}
 
-.nickname-prompt input {
-  margin-right: 8px;
-  padding: 5px;
-}
-
-.welcome-message {
-  margin: 10px 0;
-  font-size: 1.2rem;
-  color: #4b5563;
-}
+/* Header */
 .dashboard-header {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 1rem;
+  position: absolute;
+  top: 1.5rem;
+  right: 2rem;
+  z-index: 10;
 }
 
+/* Logout Button */
 .logout-button {
   padding: 8px 16px;
   background-color: #ef4444;
