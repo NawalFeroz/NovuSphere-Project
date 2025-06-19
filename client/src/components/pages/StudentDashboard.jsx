@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Eye } from 'lucide-react';
 import './StudentDashboard.css';
 
 const StudentDashboard = () => {
+  const navigate = useNavigate();
   const token = localStorage.getItem('token');
 
   let email = 'guest';
@@ -140,9 +142,20 @@ const StudentDashboard = () => {
   const filteredItems = getFiltered();
   const upcoming = getUpcoming();
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    navigate('/');
+  };
+
   return (
     <div className="dashboard-container">
       <div className="dashboard-main">
+        <div className="dashboard-header">
+          <button className="logout-button" onClick={handleLogout}>
+            Logout
+          </button>
+        </div>
+
         <h1 className="dashboard-title">Explore Opportunities</h1>
 
         <div className="dashboard-tabs">
@@ -242,7 +255,12 @@ const StudentDashboard = () => {
             const percent = ((count / totalCount) * 100).toFixed(1);
 
             return (
-              <div key={key} className="progress-bar-container">
+              <div
+                key={key}
+                className="progress-bar-container clickable"
+                onClick={() => setFilter(label)}
+                title={`Show only ${label} opportunities`}
+              >
                 <div className="progress-label">{label} ({count})</div>
                 <div className="progress-bar-bg">
                   <div
@@ -258,6 +276,10 @@ const StudentDashboard = () => {
           })}
         </div>
       </div>
+
+      <footer className="dashboard-footer">
+        © {new Date().getFullYear()} Nawal Feroz , Srihitha Redyy , KVS Sahithi
+      </footer>
     </div>
   );
 };
