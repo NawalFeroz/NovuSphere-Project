@@ -2,6 +2,9 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const multer = require('multer');
+const fs = require('fs');
+const path = require('path');
 
 const app = express();
 app.use(express.json());
@@ -30,7 +33,7 @@ mongoose.connect(
   .then(() => console.log('✅ MongoDB connected'))
   .catch((err) => console.log('MongoDB connection error:', err));
 
-// Schemas
+// Models
 const JobSchema = new mongoose.Schema({
   title: String,
   type: String,
@@ -45,6 +48,28 @@ const StatusSchema = new mongoose.Schema({
   status: { type: Map, of: String, default: {} },
 });
 const Status = mongoose.model('Status', StatusSchema);
+
+const CertificateSchema = new mongoose.Schema({
+  email: String,
+  jobId: mongoose.Schema.Types.ObjectId,
+  filePath: String,
+});
+const Certificate = mongoose.model('Certificate', CertificateSchema);
+
+// Multer configuration
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = path.join(__dirname, 'uploads');
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+    cb(null, dir);
+  },
+  filename: (req, file, cb) => {
+    const { email, jobId } = req.body;
+    const ext = path.extname(file.originalname);
+    cb(null, `${email}-${jobId}${ext}`);
+  },
+});
+const upload = multer({ storage });
 
 // Root route
 app.get('/', (req, res) => {
@@ -146,6 +171,47 @@ app.post('/status/:email', async (req, res) => {
   }
 });
 
+// Certificate upload route
+app.post('/upload-certificate', upload.single('certificate'), async (req, res) => {
+  try {
+    const { email, jobId } = req.body;
+
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    const newCert = new Certificate({
+      email,
+      jobId,
+      filePath: req.file.filename,
+    });
+
+    await newCert.save();
+    res.status(201).json({ message: 'Certificate uploaded', file: req.file.filename });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error uploading certificate' });
+  }
+});
+
+// Certificate fetch route
+app.get('/certificate/:email/:jobId', async (req, res) => {
+  try {
+    const { email, jobId } = req.params;
+    const cert = await Certificate.findOne({ email, jobId });
+
+    if (!cert) {
+      return res.status(404).json({ message: 'Certificate not found' });
+    }
+
+    const filePath = path.join(__dirname, 'uploads', cert.filePath);
+    res.sendFile(filePath);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error fetching certificate' });
+  }
+});
+
 // Utility
 function generateStudentEmails(start, end) {
   const emails = [];
@@ -156,7 +222,7 @@ function generateStudentEmails(start, end) {
   return emails;
 }
 
-// ✅ Fixed /job-stats route
+// Job stats
 app.get('/job-stats', async (req, res) => {
   try {
     const jobs = await Job.find();
