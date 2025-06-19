@@ -33,48 +33,78 @@ const StudentDashboard = () => {
       .then(res => {
         const serverStatus = res.data.status || {};
         const normalized = {};
-
         allOpportunities.forEach(item => {
           const status = serverStatus[item._id];
           if (['applied', 'pending', 'qualified', 'won', 'just saw'].includes(status)) {
             normalized[item._id] = status;
           }
         });
-
         setStatusMap(normalized);
       })
       .catch(err => console.error('Fetch status error:', err));
   }, [email, allOpportunities]);
 
-  const updateStatus = (id, status) => {
+const updateStatus = async (id, status) => {
+  if (status === 'qualified' || status === 'won') {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.pdf,.png,.jpg,.jpeg';
+    input.style.display = 'none';
+
+    input.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append('email', email);
+      formData.append('jobId', id);
+      formData.append('status', status);
+      formData.append('certificate', file);
+
+      try {
+        await axios.post(`http://localhost:5000/upload-certificate`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+
+        const updated = { ...statusMap, [id]: status };
+        setStatusMap(updated);
+
+        await axios.post(`http://localhost:5000/status/${email}`, { status: updated });
+      } catch (err) {
+        console.error('Upload error:', err);
+      }
+    });
+
+    // Append to body and trigger click
+    document.body.appendChild(input);
+    input.click();
+    // Clean up after file is selected
+    document.body.removeChild(input);
+  } else {
     const updated = { ...statusMap, [id]: status };
     setStatusMap(updated);
 
     axios.post(`http://localhost:5000/status/${email}`, { status: updated })
       .then(() => console.log('Status saved'))
       .catch(err => console.error('Error saving status:', err));
-  };
+  }
+};
+
 
   const getFiltered = () => {
     return allOpportunities.filter(item => {
       const status = statusMap[item._id];
-
       switch (filter) {
-        case 'Applied':
-          return status === 'applied';
-        case 'Pending':
-          return status === 'pending' || status === 'just saw';
-        case 'Qualified':
-          return status === 'qualified';
-        case 'Won':
-          return status === 'won';
+        case 'Applied': return status === 'applied';
+        case 'Pending': return status === 'pending' || status === 'just saw';
+        case 'Qualified': return status === 'qualified';
+        case 'Won': return status === 'won';
         case 'Job':
         case 'Hackathon':
         case 'College Event':
           return item.type?.toLowerCase() === filter.toLowerCase();
         case 'All':
-        default:
-          return true;
+        default: return true;
       }
     });
   };
@@ -82,17 +112,12 @@ const StudentDashboard = () => {
   const getColor = (id) => {
     const status = statusMap[id];
     switch (status) {
-      case 'applied':
-        return '#fde047'; // Yellow
+      case 'applied': return '#fde047';
       case 'pending':
-      case 'just saw':
-        return '#e5e7eb'; // Gray
-      case 'qualified':
-        return '#fed7aa'; // Light orange
-      case 'won':
-        return '#bbf7d0'; // Green
-      default:
-        return 'white'; // Default
+      case 'just saw': return '#e5e7eb';
+      case 'qualified': return '#fed7aa';
+      case 'won': return '#bbf7d0';
+      default: return 'white';
     }
   };
 
@@ -118,8 +143,6 @@ const StudentDashboard = () => {
     if (status === 'won') statusCounts.won++;
   });
 
-  const totalCount = allOpportunities.length || 1;
-
   const colors = {
     applied: '#fde047',
     pending: '#e5e7eb',
@@ -142,21 +165,14 @@ const StudentDashboard = () => {
           <div className="status-stars">
             <div className="star-block">
               <span>Qualified:</span>
-              {Array(statusCounts.qualified).fill().map((_, i) => (
-                <span key={i} className="silver-star">★</span>
-              ))}
+              {Array(statusCounts.qualified).fill().map((_, i) => <span key={i} className="silver-star">★</span>)}
             </div>
             <div className="star-block">
               <span>Won:</span>
-              {Array(statusCounts.won).fill().map((_, i) => (
-                <span key={i} className="gold-star">★</span>
-              ))}
+              {Array(statusCounts.won).fill().map((_, i) => <span key={i} className="gold-star">★</span>)}
             </div>
           </div>
-
-          <button className="logout-button" onClick={handleLogout}>
-            Logout
-          </button>
+          <button className="logout-button" onClick={handleLogout}>Logout</button>
         </div>
 
         <h1 className="dashboard-title">Explore Opportunities</h1>
@@ -178,11 +194,7 @@ const StudentDashboard = () => {
             <p>No opportunities available.</p>
           ) : (
             filteredItems.map(item => (
-              <div
-                key={item._id}
-                className="opportunity-card"
-                style={{ backgroundColor: getColor(item._id) }}
-              >
+              <div key={item._id} className="opportunity-card" style={{ backgroundColor: getColor(item._id) }}>
                 <div className="card-header">
                   <div className="status-actions">
                     <button onClick={() => updateStatus(item._id, 'applied')}>✅ Applied</button>
@@ -215,18 +227,11 @@ const StudentDashboard = () => {
                   Deadline: {new Date(item.deadline).toLocaleDateString()}
                 </p>
                 {item.link ? (
-                  <a
-                    href={item.link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="apply-button"
-                  >
+                  <a href={item.link} target="_blank" rel="noopener noreferrer" className="apply-button">
                     Apply Now
                   </a>
                 ) : (
-                  <button disabled className="apply-button disabled">
-                    No Link Available
-                  </button>
+                  <button disabled className="apply-button disabled">No Link Available</button>
                 )}
               </div>
             ))
@@ -254,24 +259,17 @@ const StudentDashboard = () => {
           {['applied', 'pending', 'qualified', 'won'].map(key => {
             const label = key.charAt(0).toUpperCase() + key.slice(1);
             const count = statusCounts[key];
-            const percent = ((count / totalCount) * 100).toFixed(1);
+            const percent = ((count / allOpportunities.length || 1) * 100).toFixed(1);
 
             return (
               <div
                 key={key}
                 className="progress-bar-container clickable"
                 onClick={() => setFilter(label)}
-                title={`Show only ${label} opportunities`}
               >
                 <div className="progress-label">{label} ({count})</div>
                 <div className="progress-bar-bg">
-                  <div
-                    className="progress-bar-fill"
-                    style={{
-                      width: `${percent}%`,
-                      backgroundColor: colors[key],
-                    }}
-                  />
+                  <div className="progress-bar-fill" style={{ width: `${percent}%`, backgroundColor: colors[key] }} />
                 </div>
               </div>
             );
