@@ -72,25 +72,27 @@
 .opportunity-card h3 {
   font-size: 1.2rem;
   font-weight: 700;
-  color: #f9fafb;
+  color: #000; /* black */
 }
 
 .opportunity-card .type {
   font-size: 0.9rem;
-  color: #60a5fa;
+  color: #000; /* black */
   margin-bottom: 0.3rem;
 }
 
 .opportunity-card p {
   font-size: 0.9rem;
-  color: #d1d5db;
+  color: #000; /* black */
 }
 
 .opportunity-card .deadline {
   margin-top: 0.5rem;
+  margin-bottom: 0.75rem; /* 👈 Add this */
   font-size: 0.85rem;
-  color: #facc15;
+  color: red; /* You had asked for red earlier */
 }
+
 
 /* Buttons */
 .opportunity-card button,
