@@ -71,12 +71,11 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// Root route
+// Routes
 app.get('/', (req, res) => {
   res.json({ message: 'API is running successfully' });
 });
 
-// SignIn
 app.post('/signin', async (req, res) => {
   const { email, password, role } = req.body;
 
@@ -140,12 +139,29 @@ app.delete('/deletejob/:id', async (req, res) => {
   }
 });
 
-// Status routes
+// Status with certificate data
 app.get('/status/:email', async (req, res) => {
   try {
     const { email } = req.params;
     const userStatus = await Status.findOne({ email });
-    res.json({ status: userStatus ? Object.fromEntries(userStatus.status) : {} });
+    const statusObj = userStatus ? Object.fromEntries(userStatus.status) : {};
+
+    // Fetch all certificates for this user
+    const certificates = await Certificate.find({ email });
+
+    // Add certificate info to each job status if available
+    for (const cert of certificates) {
+      const jobId = cert.jobId.toString();
+      if (statusObj[jobId]) {
+        // If status is a string, convert to object
+        if (typeof statusObj[jobId] === 'string') {
+          statusObj[jobId] = { status: statusObj[jobId] };
+        }
+        statusObj[jobId].certificate = cert.filePath;
+      }
+    }
+
+    res.json({ status: statusObj });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Error fetching status' });
@@ -171,7 +187,7 @@ app.post('/status/:email', async (req, res) => {
   }
 });
 
-// Certificate upload route
+// Upload certificate
 app.post('/upload-certificate', upload.single('certificate'), async (req, res) => {
   try {
     const { email, jobId } = req.body;
@@ -194,7 +210,7 @@ app.post('/upload-certificate', upload.single('certificate'), async (req, res) =
   }
 });
 
-// Certificate fetch route
+// Fetch single certificate
 app.get('/certificate/:email/:jobId', async (req, res) => {
   try {
     const { email, jobId } = req.params;
@@ -212,7 +228,20 @@ app.get('/certificate/:email/:jobId', async (req, res) => {
   }
 });
 
-// Utility
+// Fetch all certificates
+app.get('/certificates/:email', async (req, res) => {
+  try {
+    const { email } = req.params;
+    const certificates = await Certificate.find({ email });
+
+    res.status(200).json(certificates);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Error fetching certificates' });
+  }
+});
+
+// Generate emails
 function generateStudentEmails(start, end) {
   const emails = [];
   for (let i = start; i <= end; i++) {
