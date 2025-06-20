@@ -12,13 +12,14 @@ const StudentDashboard = () => {
   try {
     const payload = JSON.parse(atob(token.split('.')[1]));
     email = payload.email;
-  } catch (err) {
+  } catch {
     console.warn('Invalid token or no email in token');
   }
 
   const [allOpportunities, setAllOpportunities] = useState([]);
   const [filter, setFilter] = useState('All');
   const [statusMap, setStatusMap] = useState({});
+  const [certificates, setCertificates] = useState({});
 
   useEffect(() => {
     axios.get('http://localhost:5000/getjobs')
@@ -32,66 +33,85 @@ const StudentDashboard = () => {
     axios.get(`http://localhost:5000/status/${email}`)
       .then(res => {
         const serverStatus = res.data.status || {};
-        const normalized = {};
+        const newStatusMap = {};
+        const newCerts = {};
+
         allOpportunities.forEach(item => {
-          const status = serverStatus[item._id];
-          if (['applied', 'pending', 'qualified', 'won', 'just saw'].includes(status)) {
-            normalized[item._id] = status;
+          const itemStatus = serverStatus[item._id];
+          if (!itemStatus) return;
+
+          const statusValue = typeof itemStatus === 'string' ? itemStatus : itemStatus.status;
+          if (['applied', 'pending', 'qualified', 'won', 'just saw'].includes(statusValue)) {
+            newStatusMap[item._id] = statusValue;
+          }
+
+          if (typeof itemStatus === 'object' && itemStatus.certificate) {
+            newCerts[item._id] = itemStatus.certificate;
           }
         });
-        setStatusMap(normalized);
+
+        setStatusMap(newStatusMap);
+        setCertificates(newCerts);
       })
       .catch(err => console.error('Fetch status error:', err));
   }, [email, allOpportunities]);
 
-const updateStatus = async (id, status) => {
-  if (status === 'qualified' || status === 'won') {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = '.pdf,.png,.jpg,.jpeg';
-    input.style.display = 'none';
+  const updateStatus = async (id, status) => {
+    if (status === 'qualified' || status === 'won') {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.pdf,.png,.jpg,.jpeg';
+      input.style.display = 'none';
 
-    input.addEventListener('change', async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
+      input.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
 
-      const formData = new FormData();
-      formData.append('email', email);
-      formData.append('jobId', id);
-      formData.append('status', status);
-      formData.append('certificate', file);
+        const formData = new FormData();
+        formData.append('email', email);
+        formData.append('jobId', id);
+        formData.append('status', status);
+        formData.append('certificate', file);
 
-      try {
-        await axios.post(`http://localhost:5000/upload-certificate`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
+        try {
+          await axios.post('http://localhost:5000/upload-certificate', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+          });
 
-        const updated = { ...statusMap, [id]: status };
-        setStatusMap(updated);
+          const updatedStatus = { ...statusMap, [id]: status };
+          setStatusMap(updatedStatus);
 
-        await axios.post(`http://localhost:5000/status/${email}`, { status: updated });
-      } catch (err) {
-        console.error('Upload error:', err);
-      }
-    });
+          await axios.post(`http://localhost:5000/status/${email}`, { status: updatedStatus });
 
-    // Append to body and trigger click
-    document.body.appendChild(input);
-    input.click();
-    // Clean up after file is selected
-    document.body.removeChild(input);
-  } else {
-    const updated = { ...statusMap, [id]: status };
-    setStatusMap(updated);
+          const certRes = await axios.get(`http://localhost:5000/status/${email}`);
+          const itemStat = certRes.data.status[id];
+          if (itemStat?.certificate) {
+            setCertificates(prev => ({ ...prev, [id]: itemStat.certificate }));
+          }
+        } catch (err) {
+          console.error('Upload error:', err);
+        }
+      });
 
-    axios.post(`http://localhost:5000/status/${email}`, { status: updated })
-      .then(() => console.log('Status saved'))
-      .catch(err => console.error('Error saving status:', err));
-  }
-};
+      document.body.appendChild(input);
+      input.click();
+      document.body.removeChild(input);
+    } else {
+      const updated = { ...statusMap, [id]: status };
+      setStatusMap(updated);
 
+      axios.post(`http://localhost:5000/status/${email}`, { status: updated })
+        .then(() => console.log('Status saved'))
+        .catch(err => console.error('Error saving status:', err));
+    }
+  };
 
   const getFiltered = () => {
+    if (filter === 'My Certificates') {
+      return allOpportunities.filter(item =>
+        certificates[item._id] && ['qualified', 'won'].includes(statusMap[item._id])
+      );
+    }
     return allOpportunities.filter(item => {
       const status = statusMap[item._id];
       switch (filter) {
@@ -103,7 +123,6 @@ const updateStatus = async (id, status) => {
         case 'Hackathon':
         case 'College Event':
           return item.type?.toLowerCase() === filter.toLowerCase();
-        case 'All':
         default: return true;
       }
     });
@@ -129,13 +148,7 @@ const updateStatus = async (id, status) => {
       .slice(0, 3);
   };
 
-  const statusCounts = {
-    applied: 0,
-    pending: 0,
-    qualified: 0,
-    won: 0,
-  };
-
+  const statusCounts = { applied: 0, pending: 0, qualified: 0, won: 0 };
   Object.values(statusMap).forEach(status => {
     if (status === 'applied') statusCounts.applied++;
     if (status === 'pending' || status === 'just saw') statusCounts.pending++;
@@ -146,17 +159,12 @@ const updateStatus = async (id, status) => {
   const colors = {
     applied: '#fde047',
     pending: '#e5e7eb',
-    qualified: '#fb923c',
-    won: '#34d399',
+    qualified: '#fed7aa',
+    won: '#bbf7d0',
   };
 
   const filteredItems = getFiltered();
   const upcoming = getUpcoming();
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/');
-  };
 
   return (
     <div className="dashboard-container">
@@ -172,46 +180,57 @@ const updateStatus = async (id, status) => {
               {Array(statusCounts.won).fill().map((_, i) => <span key={i} className="gold-star">★</span>)}
             </div>
           </div>
-          <button className="logout-button" onClick={handleLogout}>Logout</button>
+          <button className="logout-button" onClick={() => { localStorage.removeItem('token'); navigate('/'); }}>
+            Logout
+          </button>
         </div>
 
         <h1 className="dashboard-title">Explore Opportunities</h1>
-
         <div className="dashboard-tabs">
-          {['All', 'Applied', 'Pending', 'Qualified', 'Won', 'Job', 'Hackathon', 'College Event'].map(type => (
-            <span
-              key={type}
-              onClick={() => setFilter(type)}
-              className={`tab ${filter === type ? 'active' : ''}`}
-            >
-              {type}
-            </span>
-          ))}
+          {['All', 'Applied', 'Pending', 'Qualified', 'Won', 'Job', 'Hackathon', 'College Event', 'My Certificates']
+            .map(tab => (
+              <span
+                key={tab}
+                onClick={() => setFilter(tab)}
+                className={`tab ${filter === tab ? 'active' : ''}`}
+              >
+                {tab}
+              </span>
+            ))}
         </div>
 
         <div className="opportunity-grid">
           {filteredItems.length === 0 ? (
             <p>No opportunities available.</p>
+          ) : filter === 'My Certificates' ? (
+            filteredItems.map(item => (
+              <div key={item._id} className="opportunity-card" style={{ backgroundColor: getColor(item._id) }}>
+                <h3>{item.title}</h3>
+                <p className="type">{item.type}</p>
+                <p>Status: {statusMap[item._id]}</p>
+                <a
+                  href={`http://localhost:5000/certificate/${email}/${item._id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="apply-button"
+                >
+                  View Certificate
+                </a>
+              </div>
+            ))
           ) : (
             filteredItems.map(item => (
               <div key={item._id} className="opportunity-card" style={{ backgroundColor: getColor(item._id) }}>
                 <div className="card-header">
                   <div className="status-actions">
                     <button onClick={() => updateStatus(item._id, 'applied')}>✅ Applied</button>
-                    <button
-                      onClick={() => updateStatus(item._id, 'pending')}
-                      className="eye-button"
-                      title="Mark as Just Saw"
-                    >
+                    <button onClick={() => updateStatus(item._id, 'pending')} title="Just saw" className="eye-button">
                       <Eye size={18} />
                     </button>
                   </div>
                   <select
                     value={['qualified', 'won'].includes(statusMap[item._id]) ? statusMap[item._id] : ''}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      if (val) updateStatus(item._id, val);
-                    }}
+                    onChange={e => e.target.value && updateStatus(item._id, e.target.value)}
                     className="status-dropdown"
                   >
                     <option value="">-- Status --</option>
@@ -223,13 +242,9 @@ const updateStatus = async (id, status) => {
                 <h3>{item.title}</h3>
                 <p className="type">{item.type}</p>
                 <p>{item.description}</p>
-                <p className="deadline">
-                  Deadline: {new Date(item.deadline).toLocaleDateString()}
-                </p>
+                <p className="deadline">Deadline: {new Date(item.deadline).toLocaleDateString()}</p>
                 {item.link ? (
-                  <a href={item.link} target="_blank" rel="noopener noreferrer" className="apply-button">
-                    Apply Now
-                  </a>
+                  <a href={item.link} target="_blank" rel="noopener noreferrer" className="apply-button">Apply Now</a>
                 ) : (
                   <button disabled className="apply-button disabled">No Link Available</button>
                 )}
@@ -259,7 +274,7 @@ const updateStatus = async (id, status) => {
           {['applied', 'pending', 'qualified', 'won'].map(key => {
             const label = key.charAt(0).toUpperCase() + key.slice(1);
             const count = statusCounts[key];
-            const percent = ((count / allOpportunities.length || 1) * 100).toFixed(1);
+            const percent = ((count / (allOpportunities.length || 1)) * 100).toFixed(1);
 
             return (
               <div
@@ -269,7 +284,10 @@ const updateStatus = async (id, status) => {
               >
                 <div className="progress-label">{label} ({count})</div>
                 <div className="progress-bar-bg">
-                  <div className="progress-bar-fill" style={{ width: `${percent}%`, backgroundColor: colors[key] }} />
+                  <div
+                    className="progress-bar-fill"
+                    style={{ width: `${percent}%`, backgroundColor: colors[key] }}
+                  />
                 </div>
               </div>
             );
