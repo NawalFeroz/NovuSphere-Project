@@ -169,8 +169,9 @@ function LandingPage() {
 
       {/* Footer */}
       <footer style={{ padding: '20px', textAlign: 'center', background: darkBackground, color: '#8b949e', fontSize: '0.9rem' }}>
-        © 2025 Novusphere. All rights reserved.
+        © {new Date().getFullYear()} Nawal Feroz , Srihitha Reddy , KVS Sahithi
       </footer>
+     
     </div>
   );
 }
