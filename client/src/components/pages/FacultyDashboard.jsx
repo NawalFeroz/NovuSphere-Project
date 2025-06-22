@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const generateAllUsers = () => {
   const users = [];
@@ -14,6 +15,7 @@ const FacultyDashboard = () => {
   const [view, setView] = useState('stats');
   const [postedJobs, setPostedJobs] = useState([]);
   const [jobStats, setJobStats] = useState([]);
+  const navigate = useNavigate();
 
   const fetchJobStats = async () => {
     try {
@@ -99,6 +101,16 @@ const FacultyDashboard = () => {
 
       {/* Main Content */}
       <main className="flex-1 p-6 overflow-y-auto">
+        {/* 🔴 Logout Button */}
+        <div className="flex justify-end mb-4">
+          <button
+            onClick={() => navigate('/')}
+            className="bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded shadow"
+          >
+            🚪 Logout
+          </button>
+        </div>
+
         <h1 className="text-3xl font-bold mb-6 text-center text-cyan-400">Faculty Dashboard</h1>
 
         {view === 'post' && (
