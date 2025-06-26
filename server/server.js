@@ -27,7 +27,7 @@ app.use((req, res, next) => {
 
 // MongoDB connection
 mongoose.connect(
-  'mongodb+srv://koppolsahithi:KZfoTd1MeDaMJQ25@cluster0.fhtmrse.mongodb.net/mernappdb?retryWrites=true&w=majority',
+  'mongodb+srv://feroznawal:8eYs35lzwjlc8IjI@cluster0.hiwcwb1.mongodb.net/',
   { useNewUrlParser: true, useUnifiedTopology: true }
 )
   .then(() => console.log('✅ MongoDB connected'))
